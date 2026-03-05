@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quiz – Institution & Bereich wählen</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f4f1eb;
+      --ink: #1a1a1a;
+      --accent: #d4622a;
+      --card: #ffffff;
+      --border: #ddd8ce;
+      --muted: #7a736a;
+      --success: #2a7a4b;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--accent);
+      color: white;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.9rem;
+      border-radius: 2px;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2rem, 6vw, 2.8rem);
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 0.75rem;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+
+    .field {
+      margin-bottom: 1.4rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.97rem;
+      color: var(--ink);
+      background: var(--bg);
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237a736a' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.9rem center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 0.9rem;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      margin-top: 0.5rem;
+      letter-spacing: 0.02em;
+    }
+
+    .btn:hover { background: #b8521f; }
+    .btn:active { transform: scale(0.99); }
+    .btn:disabled { background: var(--border); cursor: not-allowed; }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.5rem 0;
+    }
+
+    .info {
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .info span {
+      color: var(--success);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="badge">Online Quiz</div>
+      <h1>Willkommen zum<br/>Wissenstest</h1>
+      <p class="subtitle">Bitte wähle deine Institution und deinen Bereich,<br/>um das Quiz zu starten.</p>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label for="institution">Institution</label>
+        <select id="institution" onchange="checkBtn()">
+          <option value="">— Bitte wählen —</option>
+          <option value="Spital_A">Spital A</option>
+          <option value="Spital_B">Spital B</option>
+          <option value="Klinik_C">Klinik C</option>
+          <option value="Praxis_D">Praxis D</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="bereich">Bereich</label>
+        <select id="bereich" onchange="checkBtn()">
+          <option value="">— Bitte wählen —</option>
+          <option value="Arztdienst">Arztdienst</option>
+          <option value="Pflege">Pflege</option>
+          <option value="Hotellerie">Hotellerie</option>
+          <option value="Medizinische Therapien">Medizinische Therapien</option>
+          <option value="Aktivierung">Aktivierung</option>
+          <option value="Technischer Dienst">Technischer Dienst</option>
+        </select>
+      </div>
+
+      <hr class="divider"/>
+
+      <button class="btn" id="startBtn" disabled onclick="startQuiz()">
+        Quiz starten →
+      </button>
+
+      <p class="info" style="margin-top:1rem;">
+        <span>✓ Datenschutz:</span> Es werden keine persönlichen Daten gespeichert.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    function checkBtn() {
+      const ok = document.getElementById('institution').value &&
+                 document.getElementById('bereich').value;
+      document.getElementById('startBtn').disabled = !ok;
+    }
+
+    function startQuiz() {
+      const inst    = document.getElementById('institution').value;
+      const bereich = document.getElementById('bereich').value;
+      // Weiterleitung zum Quiz mit URL-Parametern
+      window.location.href = `quiz.html?institution=${encodeURIComponent(inst)}&bereich=${encodeURIComponent(bereich)}`;
+    }
+  </script>
+</body>
+</html>
