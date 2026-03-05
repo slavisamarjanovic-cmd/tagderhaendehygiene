@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quiz</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f4f1eb; --ink: #1a1a1a; --accent: #d4622a;
+      --card: #fff; --border: #ddd8ce; --muted: #7a736a;
+      --green: #2a7a4b; --red: #c0392b;
+    }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg); color: var(--ink);
+      min-height: 100vh; display: flex; align-items: center;
+      justify-content: center; padding: 2rem 1rem;
+    }
+    .container { width: 100%; max-width: 600px; }
+
+    /* Progress */
+    .progress-bar-wrap {
+      background: var(--border); border-radius: 99px;
+      height: 6px; margin-bottom: 1.5rem; overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%; background: var(--accent);
+      border-radius: 99px; transition: width 0.4s ease;
+    }
+    .meta {
+      display: flex; justify-content: space-between;
+      font-size: 0.8rem; color: var(--muted); margin-bottom: 0.5rem;
+    }
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 2rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .question-num {
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 0.6rem;
+    }
+    .question-text {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(1.1rem, 3.5vw, 1.4rem);
+      line-height: 1.4; margin-bottom: 1.5rem;
+    }
+    .options { display: flex; flex-direction: column; gap: 0.7rem; }
+    .option-btn {
+      padding: 0.8rem 1rem; border: 1.5px solid var(--border);
+      border-radius: 6px; background: var(--bg);
+      font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+      text-align: left; cursor: pointer; transition: all 0.2s;
+      color: var(--ink);
+    }
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--accent); background: #fdf8f5;
+    }
+    .option-btn.correct { background: #edf7f1; border-color: var(--green); color: var(--green); }
+    .option-btn.wrong   { background: #fdecea; border-color: var(--red);   color: var(--red); }
+    .option-btn:disabled { cursor: default; }
+
+    .feedback {
+      margin-top: 1rem; padding: 0.7rem 1rem;
+      border-radius: 6px; font-size: 0.9rem;
+    }
+    .feedback.correct { background: #edf7f1; color: var(--green); }
+    .feedback.wrong   { background: #fdecea; color: var(--red); }
+
+    .next-btn {
+      margin-top: 1.2rem; width: 100%; padding: 0.85rem;
+      background: var(--accent); color: white; border: none;
+      border-radius: 6px; font-family: 'DM Sans', sans-serif;
+      font-size: 1rem; font-weight: 600; cursor: pointer;
+      transition: background 0.2s; display: none;
+    }
+    .next-btn:hover { background: #b8521f; }
+
+    /* Result screen */
+    #result { display: none; text-align: center; }
+    #result .big-score {
+      font-family: 'DM Serif Display', serif;
+      font-size: 4rem; color: var(--accent); margin: 1rem 0 0.3rem;
+    }
+    #result .score-label { color: var(--muted); margin-bottom: 1.5rem; }
+    #result .restart-btn {
+      padding: 0.8rem 2rem; background: var(--accent); color: white;
+      border: none; border-radius: 6px; font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem; font-weight: 600; cursor: pointer;
+    }
+    #result .restart-btn:hover { background: #b8521f; }
+
+    .tag-row {
+      display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+    }
+    .tag {
+      font-size: 0.75rem; font-weight: 600;
+      background: #ece8df; border-radius: 4px;
+      padding: 0.25rem 0.6rem; color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Quiz screen -->
+  <div id="quiz">
+    <div class="tag-row">
+      <span class="tag" id="tagInst">—</span>
+      <span class="tag" id="tagBereich">—</span>
+    </div>
+    <div class="meta">
+      <span id="qCounter">Frage 1 / 5</span>
+      <span id="scoreCounter">Punkte: 0</span>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progressBar" style="width:0%"></div>
+    </div>
+    <div class="card">
+      <div class="question-num" id="qNum">Frage 1</div>
+      <div class="question-text" id="qText"></div>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback" style="display:none"></div>
+      <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Weiter →</button>
+    </div>
+  </div>
+
+  <!-- Result screen -->
+  <div id="result" class="card">
+    <div class="question-num">Ergebnis</div>
+    <div class="big-score" id="finalScore">0/5</div>
+    <div class="score-label" id="scoreLabel"></div>
+    <p id="resultMsg" style="color:var(--muted);margin-bottom:1.5rem;line-height:1.6"></p>
+    <button class="restart-btn" onclick="location.href='index.html'">← Zurück zur Startseite</button>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// FRAGEN – hier anpassen!
+// ============================================================
+const fragen = [
+  {
+    frage: "Wie oft sollten Hände desinfiziert werden?",
+    antworten: ["Nur vor dem Essen", "Vor und nach jedem Patientenkontakt", "Einmal täglich", "Nur bei sichtbarer Verschmutzung"],
+    richtig: 1,
+    erklaerung: "Vor und nach jedem Patientenkontakt ist Standard der Händehygiene."
+  },
+  {
+    frage: "Was bedeutet die Abkürzung DSGVO?",
+    antworten: ["Deutsche Sicherheits- und Gesundheits-Verordnung", "Datenschutz-Grundverordnung", "Digitale Schnittstellen- und Geräte-Verordnung", "Dienst-Schutz-Grundverordnung"],
+    richtig: 1,
+    erklaerung: "DSGVO = Datenschutz-Grundverordnung (EU-Recht)."
+  },
+  {
+    frage: "Welche Farbe signalisiert bei der Triage höchste Priorität?",
+    antworten: ["Grün", "Gelb", "Schwarz", "Rot"],
+    richtig: 3,
+    erklaerung: "Rot = sofortiger Behandlungsbedarf (lebensbedrohlich)."
+  },
+  {
+    frage: "Wie lautet die Notrufnummer in der Schweiz?",
+    antworten: ["110", "112", "117", "144"],
+    richtig: 3,
+    erklaerung: "144 ist die Notrufnummer des Rettungsdienstes in der Schweiz."
+  },
+  {
+    frage: "Was ist der korrekte Ablauf beim Anlegen steriler Handschuhe?",
+    antworten: [
+      "Erst rechter Handschuh, dann linker mit unsteriler Hand",
+      "Beide gleichzeitig anziehen",
+      "Erst rechts mit steriler Technik, dann links mit der bereits behandschuhten Hand",
+      "Reihenfolge ist egal"
+    ],
+    richtig: 2,
+    erklaerung: "Sterile Technik: erst eine Seite, dann die andere mit behandschuhter Hand greifen."
+  }
+];
+// ============================================================
+
+// Google Apps Script URL – hier deine URL eintragen!
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/DEINE_SCRIPT_ID/exec";
+
+const params = new URLSearchParams(window.location.search);
+const institution = params.get('institution') || 'Unbekannt';
+const bereich     = params.get('bereich')     || 'Unbekannt';
+
+document.getElementById('tagInst').textContent    = institution.replace(/_/g, ' ');
+document.getElementById('tagBereich').textContent = bereich.replace(/_/g, ' ');
+
+let current = 0, score = 0;
+
+function renderQuestion() {
+  const q = fragen[current];
+  document.getElementById('qNum').textContent    = `Frage ${current + 1}`;
+  document.getElementById('qText').textContent   = q.frage;
+  document.getElementById('qCounter').textContent = `Frage ${current+1} / ${fragen.length}`;
+  document.getElementById('scoreCounter').textContent = `Punkte: ${score}`;
+  document.getElementById('progressBar').style.width = `${(current / fragen.length) * 100}%`;
+  document.getElementById('feedback').style.display = 'none';
+  document.getElementById('nextBtn').style.display  = 'none';
+
+  const opts = document.getElementById('options');
+  opts.innerHTML = '';
+  q.antworten.forEach((a, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = a;
+    btn.onclick = () => select(i, btn);
+    opts.appendChild(btn);
+  });
+}
+
+function select(i, btn) {
+  const q = fragen[current];
+  const allBtns = document.querySelectorAll('.option-btn');
+  allBtns.forEach(b => b.disabled = true);
+  const fb = document.getElementById('feedback');
+  fb.style.display = 'block';
+
+  if (i === q.richtig) {
+    score++;
+    btn.classList.add('correct');
+    fb.className = 'feedback correct';
+    fb.textContent = '✓ Richtig! ' + q.erklaerung;
+  } else {
+    btn.classList.add('wrong');
+    allBtns[q.richtig].classList.add('correct');
+    fb.className = 'feedback wrong';
+    fb.textContent = '✗ Leider falsch. ' + q.erklaerung;
+  }
+  document.getElementById('nextBtn').style.display = 'block';
+  document.getElementById('scoreCounter').textContent = `Punkte: ${score}`;
+}
+
+function nextQuestion() {
+  current++;
+  if (current < fragen.length) {
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  document.getElementById('quiz').style.display   = 'none';
+  document.getElementById('result').style.display = 'block';
+  const pct = Math.round((score / fragen.length) * 100);
+  document.getElementById('finalScore').textContent = `${score}/${fragen.length}`;
+  document.getElementById('scoreLabel').textContent  = `${pct}% korrekt`;
+  const msgs = [
+    [80, 'Ausgezeichnet! 🎉 Du hast das Quiz hervorragend bestanden.'],
+    [60, 'Gut gemacht! Ein paar Punkte lassen sich noch verbessern.'],
+    [0,  'Weiter üben! Schau dir die Themen nochmals an.']
+  ];
+  document.getElementById('resultMsg').textContent = msgs.find(([min]) => pct >= min)[1];
+
+  // Daten an Google Sheets senden
+  sendToGoogleSheets(institution, bereich, score, fragen.length, pct);
+}
+
+async function sendToGoogleSheets(inst, ber, punkte, total, prozent) {
+  if (!GOOGLE_SCRIPT_URL.includes('DEINE_SCRIPT_ID')) {
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          institution: inst,
+          bereich: ber,
+          punkte, total, prozent,
+          datum: new Date().toLocaleString('de-CH')
+        })
+      });
+    } catch(e) { console.warn('Daten konnten nicht gesendet werden', e); }
+  }
+}
+
+renderQuestion();
+</script>
+</body>
+</html>
