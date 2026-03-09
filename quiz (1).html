@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Händehygiene Quiz</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #eef3f9;
+      --ink: #0d2a4a;
+      --accent: #005a9e;
+      --accent2: #0078d4;
+      --card: #fff;
+      --border: #b8cfe0;
+      --muted: #4a6a8a;
+      --green: #1a6e3c;
+      --green-bg: #e6f4ec;
+      --red: #9b1c1c;
+      --red-bg: #fdecea;
+      --selected: #dbeeff;
+      --selected-border: #005a9e;
+    }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg); color: var(--ink);
+      min-height: 100vh; display: flex;
+      align-items: flex-start; justify-content: center;
+      padding: 2rem 1rem 4rem;
+    }
+    .container { width: 100%; max-width: 640px; }
+    .tag-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+    .tag {
+      font-size: 0.72rem; font-weight: 600;
+      background: #c8dcf0; border-radius: 4px;
+      padding: 0.25rem 0.7rem; color: var(--accent);
+      letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    .meta { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--muted); margin-bottom: 0.4rem; }
+    .progress-bar-wrap { background: var(--border); border-radius: 99px; height: 7px; margin-bottom: 1.4rem; overflow: hidden; }
+    .progress-bar { height: 100%; background: var(--accent2); border-radius: 99px; transition: width 0.5s ease; }
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 2rem;
+      box-shadow: 0 4px 20px rgba(0,60,120,0.08);
+    }
+    .multi-hint {
+      display: inline-block; background: #fff3cd; color: #7a5a00;
+      font-size: 0.75rem; font-weight: 600;
+      padding: 0.25rem 0.7rem; border-radius: 4px;
+      margin-bottom: 0.9rem; letter-spacing: 0.03em;
+    }
+    .question-num { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent2); margin-bottom: 0.5rem; }
+    .question-text {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(1.1rem, 3.5vw, 1.45rem);
+      line-height: 1.45; margin-bottom: 1.5rem; color: var(--ink);
+    }
+    .options { display: flex; flex-direction: column; gap: 0.65rem; }
+    .option-btn {
+      display: flex; align-items: center; gap: 0.8rem;
+      padding: 0.8rem 1rem; border: 1.5px solid var(--border);
+      border-radius: 8px; background: var(--bg);
+      font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+      text-align: left; cursor: pointer; transition: all 0.18s; color: var(--ink);
+    }
+    .option-btn .checkbox {
+      width: 20px; height: 20px; min-width: 20px;
+      border: 2px solid var(--border); border-radius: 5px;
+      background: white; display: flex; align-items: center;
+      justify-content: center; font-size: 0.75rem; transition: all 0.18s;
+    }
+    .option-btn:hover:not(:disabled) { border-color: var(--accent2); background: var(--selected); }
+    .option-btn:hover:not(:disabled) .checkbox { border-color: var(--accent2); }
+    .option-btn.selected { border-color: var(--selected-border); background: var(--selected); }
+    .option-btn.selected .checkbox { background: var(--accent); border-color: var(--accent); color: white; }
+    .option-btn.correct { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+    .option-btn.correct .checkbox { background: var(--green); border-color: var(--green); color: white; }
+    .option-btn.wrong { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+    .option-btn.wrong .checkbox { background: var(--red); border-color: var(--red); color: white; }
+    .option-btn.missed { background: #fff8e1; border-color: #f59e0b; color: #7a5a00; }
+    .option-btn.missed .checkbox { background: #f59e0b; border-color: #f59e0b; color: white; }
+    .option-btn:disabled { cursor: default; }
+    .confirm-btn {
+      margin-top: 1.2rem; width: 100%; padding: 0.85rem;
+      background: var(--accent); color: white; border: none;
+      border-radius: 8px; font-family: 'DM Sans', sans-serif;
+      font-size: 1rem; font-weight: 600; cursor: pointer;
+      transition: background 0.2s; display: none;
+    }
+    .confirm-btn:hover:not(:disabled) { background: var(--accent2); }
+    .confirm-btn:disabled { background: var(--border); cursor: not-allowed; }
+    .feedback {
+      margin-top: 1rem; padding: 0.9rem 1.1rem;
+      border-radius: 8px; font-size: 0.9rem; line-height: 1.6; display: none;
+    }
+    .feedback.correct { background: var(--green-bg); color: var(--green); border: 1px solid #a3d9b8; }
+    .feedback.partial { background: #fff8e1; color: #7a5a00; border: 1px solid #f5d67a; }
+    .feedback.wrong   { background: var(--red-bg); color: var(--red); border: 1px solid #f5b8b8; }
+    .feedback strong { display: block; margin-bottom: 0.3rem; font-size: 1rem; }
+    .next-btn {
+      margin-top: 1rem; width: 100%; padding: 0.85rem;
+      background: var(--accent); color: white; border: none;
+      border-radius: 8px; font-family: 'DM Sans', sans-serif;
+      font-size: 1rem; font-weight: 600; cursor: pointer;
+      transition: background 0.2s; display: none;
+    }
+    .next-btn:hover { background: var(--accent2); }
+    #result { display: none; text-align: center; }
+    .result-emoji { font-size: 3.5rem; margin-bottom: 0.5rem; }
+    .big-score { font-family: 'DM Serif Display', serif; font-size: 3.5rem; color: var(--accent); margin-bottom: 0.3rem; }
+    .score-label { color: var(--muted); margin-bottom: 0.5rem; font-size: 1rem; }
+    .result-msg { color: var(--ink); line-height: 1.6; margin-bottom: 1.5rem; font-size: 0.95rem; }
+    .result-bar-wrap { background: var(--border); border-radius: 99px; height: 12px; margin: 1rem 0 1.5rem; overflow: hidden; }
+    .result-bar { height: 100%; background: var(--accent2); border-radius: 99px; transition: width 1s ease; width: 0%; }
+    .restart-btn {
+      padding: 0.85rem 2rem; background: var(--accent); color: white;
+      border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 0.2s;
+    }
+    .restart-btn:hover { background: var(--accent2); }
+    @keyframes slideIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+    .card { animation: slideIn 0.3s ease; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div id="quiz">
+    <div class="tag-row">
+      <span class="tag" id="tagInst">—</span>
+      <span class="tag" id="tagBereich">—</span>
+    </div>
+    <div class="meta">
+      <span id="qCounter">Frage 1 / 10</span>
+      <span id="scoreCounter">Punkte: 0</span>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progressBar" style="width:0%"></div>
+    </div>
+    <div class="card" id="questionCard">
+      <div id="multiHint" class="multi-hint" style="display:none">☑️ Mehrere Antworten möglich</div>
+      <div class="question-num" id="qNum">Frage 1</div>
+      <div class="question-text" id="qText"></div>
+      <div class="options" id="options"></div>
+      <button class="confirm-btn" id="confirmBtn" onclick="confirmAnswer()">Antwort bestätigen ✓</button>
+      <div class="feedback" id="feedback"></div>
+      <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Weiter →</button>
+    </div>
+  </div>
+
+  <div id="result" class="card">
+    <div class="result-emoji" id="resultEmoji">🎉</div>
+    <div class="question-num">Dein Ergebnis</div>
+    <div class="big-score" id="finalScore">0/10</div>
+    <div class="score-label" id="scoreLabel"></div>
+    <div class="result-bar-wrap"><div class="result-bar" id="resultBar"></div></div>
+    <p class="result-msg" id="resultMsg"></p>
+    <button class="restart-btn" onclick="location.href='index.html'">← Zurück zur Startseite</button>
+  </div>
+</div>
+
+<script>
+const fragen = [
+  {
+    frage: "🧤 In welchen Situationen müssen Handschuhe getragen werden?",
+    antworten: ["Beim Blutentnehmen","Beim Spaziergang mit einer Bewohnerin","Beim Kontakt mit Urin oder Stuhl","Beim Sortieren von schmutziger Wäsche"],
+    richtig: [0,2,3],
+    erklaerung: "Handschuhe sind indiziert bei möglichem Kontakt mit Körperflüssigkeiten oder kontaminierten Materialien."
+  },
+  {
+    frage: "🚶 Bei welchen Tätigkeiten müssen Handschuhe NICHT getragen werden?",
+    antworten: ["Blutdruck messen","Vitalzeichen kontrollieren","Spazieren mit Bewohnerin","Verbandwechsel"],
+    richtig: [0,1,2],
+    erklaerung: "Verbandwechsel erfordert Handschuhe wegen möglichem Kontakt mit Körperflüssigkeiten. Blutdruck messen, Vitalzeichen und Spazieren hingegen erfordern keine Handschuhe."
+  },
+  {
+    frage: "🤔 Handschuhe ersetzen… was genau?",
+    antworten: ["Händedesinfektion","Gar nichts","Nur das Händewaschen","Das Händeschütteln"],
+    richtig: [1],
+    erklaerung: "Handschuhe ersetzen niemals die Händedesinfektion – sie sind eine Ergänzung, kein Ersatz!"
+  },
+  {
+    frage: "⏱️ Was passiert oft, wenn Handschuhe zu lange getragen werden?",
+    antworten: ["Flüssigkeit sammelt sich im Handschuh","Hände werden automatisch sauberer","Haut kann geschädigt werden","Keime verschwinden freiwillig"],
+    richtig: [0,2],
+    erklaerung: "Bei langer Tragezeit sammelt sich Feuchtigkeit an, was die Haut schädigen kann."
+  },
+  {
+    frage: "🔄 Wann muss ein Handschuh gewechselt werden?",
+    antworten: ["Wenn er beschädigt ist","Nach mehr als 15 Minuten Tragen","Wenn man eine neue Tätigkeit beginnt","Erst nach Feierabend"],
+    richtig: [0,1,2],
+    erklaerung: "Handschuhe müssen bei Perforation, Tätigkeitswechsel oder längerer Tragedauer gewechselt werden."
+  },
+  {
+    frage: "😅 Was sollte man mit Handschuhen auf KEINEN FALL tun?",
+    antworten: ["Sich ins Gesicht oder in die Haare fassen","Handschuhe desinfizieren","Handschuhe nach Gebrauch entsorgen","Handschuhe bei sichtbarer Beschädigung wechseln"],
+    richtig: [0,1],
+    erklaerung: "Handschuhe können kontaminiert sein – nie ins Gesicht greifen! Und Handschuhe dürfen nicht desinfiziert werden, sie müssen gewechselt werden."
+  },
+  {
+    frage: "🧴 Wann müssen Hände desinfiziert werden?",
+    antworten: ["Bevor die Handschuhe angezogen werden","Nachdem die Handschuhe ausgezogen werden","Nur wenn die Hände sichtbar schmutzig sind","Nur am Ende der Schicht"],
+    richtig: [0,1],
+    erklaerung: "🧤 Vor dem Anziehen: Damit keine Keime in die Handschuhe gelangen. 🧤 Nach dem Ausziehen: Handschuhe können kleine Löcher haben oder beim Ausziehen können Keime auf die Hände gelangen. Wenn Hände sichtbar schmutzig sind, müssen sie gewaschen werden."
+  },
+  {
+    frage: "🦠 Wie viele Keime werden durch Händedesinfektion ungefähr reduziert?",
+    antworten: ["50 %","90 %","99,99 %","10 %"],
+    richtig: [2],
+    erklaerung: "Händedesinfektion reduziert etwa 99,99 % der Keime – eine der wirksamsten Hygienemassnahmen!"
+  },
+  {
+    frage: "⏳ Wie lange sollte Händedesinfektionsmittel eingerieben werden?",
+    antworten: ["5 Sekunden","10 Sekunden","Mindestens 30 Sekunden","Bis Netflix fertig geladen hat 😄"],
+    richtig: [2],
+    erklaerung: "Mindestens 30 Sekunden Einreibzeit werden empfohlen – alle Bereiche der Hände einschliessen!"
+  },
+  {
+    frage: "💙 Was schützt eine gute Händehygiene wirklich?",
+    antworten: ["Bewohnerinnen","Mitarbeitende","Andere Teammitglieder","Eigentlich alle"],
+    richtig: [3],
+    erklaerung: "Händehygiene ist eine der wichtigsten Massnahmen zur Infektionsprävention – sie schützt alle!"
+  }
+];
+
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxv4CS56xQx8P6TTKdqY95zHExPcoRWi2mdKazGLz0QUEuNjepuwGYZEja50fmLQoyC/exec";
+
+const params = new URLSearchParams(window.location.search);
+const institution = params.get('institution') || 'Unbekannt';
+const bereich     = params.get('bereich')     || 'Unbekannt';
+
+document.getElementById('tagInst').textContent    = institution;
+document.getElementById('tagBereich').textContent = bereich;
+
+let current = 0, score = 0, selectedIndices = [];
+
+function renderQuestion() {
+  const q = fragen[current];
+  selectedIndices = [];
+
+  document.getElementById('qNum').textContent = `Frage ${current + 1}`;
+  document.getElementById('qText').textContent = q.frage;
+  document.getElementById('qCounter').textContent = `Frage ${current+1} / ${fragen.length}`;
+  document.getElementById('scoreCounter').textContent = `Punkte: ${score}`;
+  document.getElementById('progressBar').style.width = `${(current / fragen.length) * 100}%`;
+  document.getElementById('feedback').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'none';
+
+  const isMulti = q.richtig.length > 1;
+  document.getElementById('multiHint').style.display = isMulti ? 'inline-block' : 'none';
+
+  const confirmBtn = document.getElementById('confirmBtn');
+  confirmBtn.style.display = 'block';
+  confirmBtn.disabled = true;
+
+  const opts = document.getElementById('options');
+  opts.innerHTML = '';
+  q.antworten.forEach((a, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="checkbox"></span><span>${a}</span>`;
+    btn.onclick = () => toggleOption(i, btn);
+    opts.appendChild(btn);
+  });
+
+  const card = document.getElementById('questionCard');
+  card.style.animation = 'none'; card.offsetHeight;
+  card.style.animation = 'slideIn 0.3s ease';
+}
+
+function toggleOption(i, btn) {
+  const q = fragen[current];
+  const isMulti = q.richtig.length > 1;
+  const allBtns = document.querySelectorAll('.option-btn');
+
+  if (!isMulti) {
+    allBtns.forEach((b,j) => {
+      b.classList.remove('selected');
+      b.querySelector('.checkbox').textContent = '';
+    });
+    selectedIndices = [i];
+    btn.classList.add('selected');
+    btn.querySelector('.checkbox').textContent = '✓';
+  } else {
+    const idx = selectedIndices.indexOf(i);
+    if (idx > -1) {
+      selectedIndices.splice(idx, 1);
+      btn.classList.remove('selected');
+      btn.querySelector('.checkbox').textContent = '';
+    } else {
+      selectedIndices.push(i);
+      btn.classList.add('selected');
+      btn.querySelector('.checkbox').textContent = '✓';
+    }
+  }
+  document.getElementById('confirmBtn').disabled = selectedIndices.length === 0;
+}
+
+function confirmAnswer() {
+  const q = fragen[current];
+  const allBtns = document.querySelectorAll('.option-btn');
+  allBtns.forEach(b => b.disabled = true);
+  document.getElementById('confirmBtn').style.display = 'none';
+
+  const selected = [...selectedIndices].sort((a,b)=>a-b);
+  const correct  = [...q.richtig].sort((a,b)=>a-b);
+  const isFullyCorrect = JSON.stringify(selected) === JSON.stringify(correct);
+  const isPartial = !isFullyCorrect && selected.some(s => correct.includes(s));
+
+  allBtns.forEach((btn, i) => {
+    btn.classList.remove('selected');
+    btn.querySelector('.checkbox').textContent = '';
+    if (correct.includes(i) && selected.includes(i)) {
+      btn.classList.add('correct');
+      btn.querySelector('.checkbox').textContent = '✓';
+    } else if (!correct.includes(i) && selected.includes(i)) {
+      btn.classList.add('wrong');
+      btn.querySelector('.checkbox').textContent = '✗';
+    } else if (correct.includes(i) && !selected.includes(i)) {
+      btn.classList.add('missed');
+      btn.querySelector('.checkbox').textContent = '!';
+    }
+  });
+
+  if (isFullyCorrect) score++;
+
+  const fb = document.getElementById('feedback');
+  fb.style.display = 'block';
+  if (isFullyCorrect) {
+    fb.className = 'feedback correct';
+    fb.innerHTML = `<strong>✅ Richtig! Super gemacht!</strong>${q.erklaerung}`;
+  } else if (isPartial) {
+    fb.className = 'feedback partial';
+    fb.innerHTML = `<strong>⚠️ Teilweise richtig!</strong>${q.erklaerung}`;
+  } else {
+    fb.className = 'feedback wrong';
+    fb.innerHTML = `<strong>❌ Leider falsch.</strong>${q.erklaerung}`;
+  }
+
+  document.getElementById('scoreCounter').textContent = `Punkte: ${score}`;
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.style.display = 'block';
+  nextBtn.textContent = current < fragen.length - 1 ? 'Weiter →' : 'Ergebnis anzeigen 🏆';
+}
+
+function nextQuestion() {
+  current++;
+  if (current < fragen.length) { renderQuestion(); } else { showResult(); }
+}
+
+function showResult() {
+  document.getElementById('quiz').style.display = 'none';
+  document.getElementById('result').style.display = 'block';
+  const pct = Math.round((score / fragen.length) * 100);
+  document.getElementById('finalScore').textContent = `${score} / ${fragen.length}`;
+  document.getElementById('scoreLabel').textContent = `${pct}% der Fragen vollständig richtig`;
+  setTimeout(() => { document.getElementById('resultBar').style.width = pct + '%'; }, 100);
+
+  let emoji, msg;
+  if (pct >= 90)      { emoji='🏆'; msg='Fantastisch! Du bist ein echter Hygiene-Champion! Dein Wissen schützt Bewohnerinnen, Kolleginnen und dich selbst.'; }
+  else if (pct >= 70) { emoji='🌟'; msg='Sehr gut! Du kennst die wichtigsten Hygienemassnahmen. Ein paar Details kannst du noch vertiefen.'; }
+  else if (pct >= 50) { emoji='👍'; msg='Gut gemacht! Du bist auf dem richtigen Weg. Schau dir die Hygienemassnahmen nochmals an.'; }
+  else                { emoji='💪'; msg='Weiter üben! Händehygiene ist eine der wichtigsten Massnahmen im Pflegealltag. Du schaffst das!'; }
+
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultMsg').textContent = msg;
+  sendToGoogleSheets(institution, bereich, score, fragen.length, pct);
+}
+
+async function sendToGoogleSheets(inst, ber, punkte, total, prozent) {
+  try {
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ institution: inst, bereich: ber, punkte, total, prozent, datum: new Date().toLocaleString('de-CH') })
+    });
+  } catch(e) { console.warn('Daten konnten nicht gesendet werden', e); }
+}
+
+renderQuestion();
+</script>
+</body>
+</html>
